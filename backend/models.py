@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 # IMPORTANT: Replace this with your actual connection string from Neon
-DATABASE_URL = "postgresql://neondb_owner:npg_21hctDpGBayU@ep-calm-tooth-adj5xzox-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DATABASE_URL = "postgresql://kanban_project_db_ejgb_user:M8zplDyqPvAvRm8OH1KjFDMxZAWXroE1@dpg-d2n5lffdiees73c7mlvg-a/kanban_project_db_ejgb"
 
 Base = declarative_base()
 
