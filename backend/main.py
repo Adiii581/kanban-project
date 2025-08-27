@@ -5,7 +5,9 @@ from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import auth, models, schemas
+import auth
+import models
+import schemas
 from .models import SessionLocal, create_tables
 
 app = FastAPI()
