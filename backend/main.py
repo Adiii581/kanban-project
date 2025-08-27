@@ -8,14 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import auth
 import models
 import schemas
-from .models import SessionLocal, create_tables
+from models import SessionLocal, create_tables
 
 app = FastAPI()
 
-# This is crucial for allowing your frontend (on a different URL) to talk to this backend
+# CORS Middleware to allow the frontend to communicate
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://kanban-project.vercel.app"], # The address of your React frontend
+    allow_origins=["https://kanban-project.vercel.app"], # IMPORTANT: Update this with your Vercel URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,7 +27,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 def on_startup():
     create_tables()
 
-# Dependency to get a DB session
 def get_db():
     db = SessionLocal()
     try:
@@ -35,7 +34,6 @@ def get_db():
     finally:
         db.close()
 
-# Dependency to get the current user from a JWT
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,7 +54,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 # === AUTHENTICATION ENDPOINTS ===
-@app.post("/api/users/register", response_model=schemas.User)
+@app.post("/api/users/register", response_model=schemas.UserSchema)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
@@ -80,7 +78,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     return {"access_token": access_token, "token_type": "bearer"}
 
 # === BOARD ENDPOINTS ===
-@app.post("/api/boards/", response_model=schemas.Board)
+@app.post("/api/boards/", response_model=schemas.BoardSchema)
 def create_board(board: schemas.BoardCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     db_board = models.Board(**board.dict(), owner_id=current_user.id)
     db.add(db_board)
@@ -88,11 +86,11 @@ def create_board(board: schemas.BoardCreate, db: Session = Depends(get_db), curr
     db.refresh(db_board)
     return db_board
 
-@app.get("/api/boards/", response_model=List[schemas.Board])
+@app.get("/api/boards/", response_model=List[schemas.BoardSchema])
 def get_user_boards(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return db.query(models.Board).filter(models.Board.owner_id == current_user.id).all()
 
-@app.get("/api/boards/{board_id}", response_model=schemas.Board)
+@app.get("/api/boards/{board_id}", response_model=schemas.BoardSchema)
 def get_board_details(board_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     board = db.query(models.Board).filter(models.Board.id == board_id, models.Board.owner_id == current_user.id).first()
     if board is None:
@@ -100,7 +98,7 @@ def get_board_details(board_id: int, db: Session = Depends(get_db), current_user
     return board
 
 # === LIST ENDPOINTS ===
-@app.post("/api/boards/{board_id}/lists", response_model=schemas.List)
+@app.post("/api/boards/{board_id}/lists", response_model=schemas.ListSchema)
 def create_list_for_board(board_id: int, list_data: schemas.ListCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     board = db.query(models.Board).filter(models.Board.id == board_id, models.Board.owner_id == current_user.id).first()
     if not board:
@@ -112,9 +110,8 @@ def create_list_for_board(board_id: int, list_data: schemas.ListCreate, db: Sess
     return db_list
 
 # === CARD ENDPOINTS ===
-@app.post("/api/lists/{list_id}/cards", response_model=schemas.Card)
+@app.post("/api/lists/{list_id}/cards", response_model=schemas.CardSchema)
 def create_card_for_list(list_id: int, card_data: schemas.CardCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    # Verify the user has access to the list's parent board before creating a card in it
     db_list = db.query(models.List).join(models.Board).filter(models.List.id == list_id, models.Board.owner_id == current_user.id).first()
     if not db_list:
         raise HTTPException(status_code=404, detail="List not found or you do not have permission")
