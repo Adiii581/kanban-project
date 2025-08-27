@@ -15,7 +15,7 @@ app = FastAPI()
 # CORS Middleware to allow the frontend to communicate
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["kanban-project-navy-three.vercel.app"], # IMPORTANT: Update this with your Vercel URL
+    allow_origins=["https://kanban-project-navy-three.vercel.app"], # IMPORTANT: Update this with your Vercel URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
