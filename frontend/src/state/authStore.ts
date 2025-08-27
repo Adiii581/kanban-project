@@ -1,9 +1,10 @@
-import create from 'zustand';
+import { create } from 'zustand'; // Changed from default to named import
 import { persist } from 'zustand/middleware';
 
-interface AuthState {
+// Exporting the interface allows other files to use this type
+export interface AuthState {
   token: string | null;
-  setToken: (token: string) => void;
+  setToken: (token: string) => void; // Added 'string' type to the token parameter
   clearToken: () => void;
 }
 
@@ -15,7 +16,7 @@ const useAuthStore = create<AuthState>()(
       clearToken: () => set({ token: null }),
     }),
     {
-      name: 'auth-storage', // unique name for the local storage item
+      name: 'auth-storage',
     }
   )
 );
