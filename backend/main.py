@@ -13,7 +13,7 @@ app = FastAPI()
 # This is crucial for allowing your frontend (on a different URL) to talk to this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], # The address of your React frontend
+    allow_origins=["https://kanban-project.vercel.app"], # The address of your React frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
